@@ -123,9 +123,42 @@ tibble(ID = c("1", "2", "...", "10", "11", "...", "N"),
   tab_spanner(label = "Covariate", columns = c(treatment))
 ```
 
+```{r}
+#| message: false
+library(tidybayes)
+library(brms)
+```
 
+```{r}
+#| message: false
+#| warning: FALSE
+x <- read_csv("data/resume.csv", show_col_types = FALSE)
+```
 
+```{r}
+#| message: false
+#| warning: FALSE
+#| cache: TRUE
+fit_resume <- brm(formula = call~race, data = x, family = bernoulli(),   refresh = 0,
+                silent = 2,
+                seed = 9)
+```
 
-
-
+```{r}
+#| message: false
+fit_resume |>
+   add_epred_draws(newdata = tibble(race = c("white", "black"))) |>
+  select(race, .epred) |>
+  ggplot(aes(x = .epred)) +
+  geom_histogram(aes(fill = race), bins = 100) +
+  scale_x_continuous(labels = scales::percent_format()) +
+  labs(title = "Posterior for Callback Rates",
+      subtitle = "Resumes with white-coded names are much more likely to recieve callbacks", 
+      x = "Probability of Callback",
+      fill = "(Likely) Race of 
+Name on Resume") +
+    theme(axis.title.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.y = element_blank())
+```
   
